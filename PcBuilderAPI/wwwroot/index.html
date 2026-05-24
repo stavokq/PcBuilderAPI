@@ -1,0 +1,143 @@
+﻿<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Конфігуратор комплектуючих ПК</title>
+    <script src="js/lab2.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 30px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        h1, h3 {
+            color: #2c3e50;
+        }
+
+        form {
+            background: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            max-width: 400px;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        input[type="submit"], button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            input[type="submit"]:hover, button:hover {
+                background-color: #2980b9;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f4f6f7;
+            color: #34495e;
+        }
+
+        .btn-edit {
+            background-color: #f39c12;
+            margin-right: 5px;
+        }
+
+            .btn-edit:hover {
+                background-color: #d35400;
+            }
+
+        .btn-delete {
+            background-color: #e74c3c;
+        }
+
+            .btn-delete:hover {
+                background-color: #c0392b;
+            }
+
+        #editFormContainer {
+            display: none;
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Управління каталогом комплектуючих ПК</h1>
+
+    <h3>Додати нове комплектуюче</h3>
+    <form onsubmit="addComponent(event)">
+        <div class="form-group"><input type="text" id="add-name" placeholder="Назва" required></div>
+        <div class="form-group"><input type="text" id="add-description" placeholder="Опис"></div>
+        <div class="form-group"><input type="number" id="add-price" placeholder="Ціна" step="0.01" required></div>
+        <input type="submit" value="Додати в базу">
+    </form>
+
+    <div id="editFormContainer">
+        <h3>Редагувати комплектуюче</h3>
+        <form onsubmit="updateComponent(event)">
+            <input type="hidden" id="edit-id">
+            <div class="form-group"><input type="text" id="edit-name" required></div>
+            <div class="form-group"><input type="text" id="edit-description"></div>
+            <div class="form-group"><input type="number" id="edit-price" step="0.01" required></div>
+            <input type="submit" value="Зберегти зміни" style="background-color: #27ae60;">
+            <button type="button" onclick="closeInput()" style="background-color: #7f8c8d;">Скасувати</button>
+        </form>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Назва</th>
+                <th>Опис та характеристики</th>
+                <th>Ціна</th>
+                <th style="width: 180px;">Дії</th>
+            </tr>
+        </thead>
+        <tbody id="components-table-body"></tbody>
+    </table>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            getComponents();
+        });
+    </script>
+</body>
+</html>

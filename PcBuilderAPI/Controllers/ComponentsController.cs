@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PcBuilderAPI.Models;
@@ -18,49 +17,16 @@ namespace PcBuilderAPI.Controllers
         public ComponentsController(PcBuilderContext context)
         {
             _context = context;
-
-            if (!_context.Categories.Any())
-            {
-                var cpuCategory = new Category { Name = "Процесори" };
-                var gpuCategory = new Category { Name = "Відеокарти" };
-
-                var intel = new Manufacturer { Name = "Intel", Website = "https://intel.com" };
-                var nvidia = new Manufacturer { Name = "NVIDIA", Website = "https://nvidia.com" };
-
-                _context.Categories.AddRange(cpuCategory, gpuCategory);
-                _context.Manufacturers.AddRange(intel, nvidia);
-                _context.SaveChanges();
-
-                _context.Components.AddRange(
-                    new Component
-                    {
-                        Name = "Intel Core i5-14600K",
-                        Description = "3.5GHz up to 5.3GHz, 14 cores, 24MB cache.",
-                        Price = 13500.00m,
-                        Category = cpuCategory,
-                        Manufacturer = intel
-                    },
-                    new Component
-                    {
-                        Name = "NVIDIA GeForce RTX 5070",
-                        Description = "12GB GDDR7.",
-                        Price = 28000.00m,
-                        Category = gpuCategory,
-                        Manufacturer = nvidia
-                    }
-                );
-                _context.SaveChanges();
-            }
         }
 
         // GET: api/Components
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Component>>> GetComponents()
         {
-            return await _context.Components.ToListAsync();
+            return await _context.Components.AsNoTracking().ToListAsync();
         }
 
-        // GET: api/Components/5
+        // GET: api/Components
         [HttpGet("{id}")]
         public async Task<ActionResult<Component>> GetComponent(int id)
         {
@@ -74,17 +40,24 @@ namespace PcBuilderAPI.Controllers
             return component;
         }
 
-        // PUT: api/Components/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // PUT: api/Components
         [HttpPut("{id}")]
         public async Task<IActionResult> PutComponent(int id, Component component)
         {
             if (id != component.Id)
             {
-                return BadRequest();
+                return BadRequest("ID не збігаються");
             }
 
-            _context.Entry(component).State = EntityState.Modified;
+            var existingComponent = await _context.Components.FindAsync(id);
+            if (existingComponent == null)
+            {
+                return NotFound();
+            }
+
+            existingComponent.Name = component.Name;
+            existingComponent.Description = component.Description;
+            existingComponent.Price = component.Price;
 
             try
             {
@@ -106,7 +79,6 @@ namespace PcBuilderAPI.Controllers
         }
 
         // POST: api/Components
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Component>> PostComponent(Component component)
         {
@@ -116,25 +88,26 @@ namespace PcBuilderAPI.Controllers
             return CreatedAtAction("GetComponent", new { id = component.Id }, component);
         }
 
-        // DELETE: api/Components/5
+        private bool ComponentExists(int id)
+        {
+            return _context.Components.Any(e => e.Id == id);
+        }
+
+        // DELETE: api/Components
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteComponent(int id)
         {
             var component = await _context.Components.FindAsync(id);
             if (component == null)
             {
-                return NotFound();
+                return NotFound($"Компонент з ID {id} не знайдено");
             }
 
             _context.Components.Remove(component);
+
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }
-
-        private bool ComponentExists(int id)
-        {
-            return _context.Components.Any(e => e.Id == id);
         }
     }
 }
