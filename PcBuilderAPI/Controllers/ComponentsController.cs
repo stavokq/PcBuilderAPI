@@ -40,7 +40,7 @@ namespace PcBuilderAPI.Controllers
             return component;
         }
 
-        // PUT: api/Components
+        // PUT: api/Components/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutComponent(int id, Component component)
         {
@@ -49,15 +49,30 @@ namespace PcBuilderAPI.Controllers
                 return BadRequest("ID не збігаються");
             }
 
+            if (component.Price < 0)
+            {
+                return BadRequest("Ціна комплектуючого не може бути від'ємною.");
+            }
+
             var existingComponent = await _context.Components.FindAsync(id);
             if (existingComponent == null)
             {
                 return NotFound();
             }
 
+            var categoryExists = await _context.Categories.AnyAsync(c => c.Id == component.CategoryId);
+            var manufacturerExists = await _context.Manufacturers.AnyAsync(m => m.Id == component.ManufacturerId);
+
+            if (!categoryExists || !manufacturerExists)
+            {
+                return BadRequest("Категорія або Виробник не знайдено.");
+            }
+
             existingComponent.Name = component.Name;
             existingComponent.Description = component.Description;
             existingComponent.Price = component.Price;
+            existingComponent.CategoryId = component.CategoryId;
+            existingComponent.ManufacturerId = component.ManufacturerId;
 
             try
             {
@@ -82,6 +97,19 @@ namespace PcBuilderAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Component>> PostComponent(Component component)
         {
+            if (component.Price < 0)
+            {
+                return BadRequest("Ціна комплектуючого не може бути від'ємною.");
+            }
+
+            var categoryExists = await _context.Categories.AnyAsync(c => c.Id == component.CategoryId);
+            var manufacturerExists = await _context.Manufacturers.AnyAsync(m => m.Id == component.ManufacturerId);
+
+            if (!categoryExists || !manufacturerExists)
+            {
+                return BadRequest("Неправильний ID категорії або виробника.");
+            }
+
             _context.Components.Add(component);
             await _context.SaveChangesAsync();
 
